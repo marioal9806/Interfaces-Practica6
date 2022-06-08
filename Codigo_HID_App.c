@@ -12,6 +12,9 @@
 USHORT  RICH_VENDOR_ID;
 USHORT  RICH_USBHID_GENIO_ID;
 
+UINT LED_number;
+UINT LED_value;
+
 #define INPUT_REPORT_SIZE	64
 #define OUTPUT_REPORT_SIZE	64
 
@@ -205,11 +208,51 @@ int Touch_Device(void) {
 	// Dentro de reporteSalida[1] enviar el valor del comando deseado
 	switch (Menu_Choice) {
 	case 1: // Modificar LED
+		// Leer el numero de LED
+		memset(InputBuffer, 0, MAX_BUFFER_SIZE);
+
+		printf("--------------------------------------------------------\n");
+		printf("Ingresa el LED por modificar (1, 2 o 3):\n");
+		printf("> ");
+		if (fgets(InputBuffer, MAX_BUFFER_SIZE, stdin) == NULL) {
+			printf("fgets error\numChars");
+		}
+		else {
+			char* ptr = strchr(InputBuffer, '\n');
+			if (ptr)
+			{
+				//if new line found replace with null character
+				*ptr = '\0';
+			}
+		}
+		LED_number = (UINT)strtol(InputBuffer, NULL, 10);
+
+		// Leer el valor a escribir
+		printf("Ingresa el valor deseado para el LED (1 o 0):\n");
+		printf("> ");
+		memset(InputBuffer, 0, MAX_BUFFER_SIZE);
+		if (fgets(InputBuffer, MAX_BUFFER_SIZE, stdin) == NULL) {
+			printf("fgets error\numChars");
+		}
+		else {
+			char* ptr = strchr(InputBuffer, '\n');
+			if (ptr)
+			{
+				//if new line found replace with null character
+				*ptr = '\0';
+			}
+		}
+		LED_value = (UINT)strtol(InputBuffer, NULL, 10);
+
+		// Definir el comando por escribir
+		reporteSalida[1] = LED_number;
+		reporteSalida[2] = LED_value;
 		break;
 	case 2: // Leer estado de los Switches
 		reporteSalida[1] = 0x81;
 		break;
 	case 3: // Leer matriculas
+		reporteSalida[1] = 0x82;
 		break;
 	}
 
@@ -231,6 +274,9 @@ int Touch_Device(void) {
 		// Procesar los datos que el micro regresa dependiendo de la opcion seleccionada
 		switch (Menu_Choice) {
 		case 1: // Modificar LED
+			printf("--------------------------------------------------------\n");
+			printf("LED %d was modified with value %d\n", (unsigned char)reporteEntrada[1], (unsigned char)reporteEntrada[2]);
+			printf("--------------------------------------------------------\n");
 			break;
 		case 2: // Leer estado de los Switches
 			printf("--------------------------------------------------------\n");
@@ -242,6 +288,10 @@ int Touch_Device(void) {
 
 			break;
 		case 3: // Leer matriculas
+			printf("--------------------------------------------------------\n");
+			printf("Matriculas de los programadores:\n");
+			printf("%s\n", (unsigned char*)&reporteEntrada[2]);
+			printf("--------------------------------------------------------\n");
 			break;
 		}
 
